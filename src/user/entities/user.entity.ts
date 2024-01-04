@@ -13,7 +13,7 @@ import {
   @Entity({ name: 'user' })
 export class User extends BaseEntity{
     @PrimaryGeneratedColumn()
-    private userId: number;
+    userId: number;
 
     @Column({ nullable: false, unique: true })
     private email: string;
@@ -35,6 +35,9 @@ export class User extends BaseEntity{
 
     @Column({ nullable: false})
     private alarm: boolean;
+
+    @Column({ nullable: false})
+    custom_pop: number;
 
     @OneToMany(() => Washingcarday, (washingcarday) => washingcarday.user)
     washingcarday: Washingcarday[];
@@ -103,6 +106,14 @@ export class User extends BaseEntity{
 
     set setFcmToken(fcmToken: string){
       this.fcmToken = fcmToken;
+    }
+
+    set setCustomPop(pop: number){
+      this.custom_pop = pop;
+    }
+
+    get getCustomPop(): number{
+      return this.custom_pop;
     }
 
     get getCreatedAt(): Date {

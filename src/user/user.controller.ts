@@ -28,16 +28,6 @@ export class UserController {
     return this.userService.saveUser(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
-
   @Patch(':userId')
   update(
     @Param('userId', ParseIntPipe) userId: number,
@@ -45,11 +35,6 @@ export class UserController {
     @Req() req: IUserRequest,
     ) : Promise<BasicMessageDto> {
     return this.userService.update(userId, dto , req.accessToken);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
   }
 
   @Post('/login')
@@ -64,12 +49,5 @@ export class UserController {
     @Req() req: IUserRequest,
   ): Promise<BasicMessageDto> {
     return this.userService.updateFcmToken(userId, dto , req.accessToken);
-  }
-
-  @Post('/test/:userId')
-  test(
-    @Param('userId', ParseIntPipe) userId: number,
-  ): Promise<BasicMessageDto> {
-    return this.userService.test(userId);
   }
 }

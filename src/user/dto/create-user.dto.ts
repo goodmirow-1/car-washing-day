@@ -14,6 +14,9 @@ export class CreateUserDto {
   @IsString()
   address: string;
 
+  @IsNumber()
+  custom_pop: number;
+
   get getEmail(): string {
     return this.email;
   }

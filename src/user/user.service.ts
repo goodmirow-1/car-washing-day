@@ -13,8 +13,6 @@ import { UserLoginResponseDto } from './dto/user-login-response.dto';
 import { User } from './entities/user.entity';
 import { BasicMessageDto } from '../common/basic-message.dto';
 import { Repository } from 'typeorm';
-import { admin } from '../firebase/firebaseAdmin';
-
 
 import {
   extractUserId,
@@ -35,6 +33,7 @@ export class UserService {
     user.setLoginType = dto.loginType;
     user.setNickName = dto.nickName;
     user.setAddress = dto.address;
+    user.setCustomPop = dto.custom_pop;
     return user;
   };
 
@@ -61,18 +60,6 @@ export class UserService {
     }
   }
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
-  }
-
-  findAll() {
-    return `This action returns all user`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
   async update(
     userId: number,
     dto: UpdateUserDto,
@@ -93,16 +80,12 @@ export class UserService {
     } else throw new NotFoundException();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
-
   async login(dto: UserLoginRequestDto): Promise<UserLoginResponseDto> {
     const email = dto.email;
     const loginType = dto.loginType;
+
     const user = await this.userRepository
-    .createQueryBuilder('user')
-      // .select()
+      .createQueryBuilder('user')
       .leftJoinAndSelect('user.washingcarday', 'washingcarday') // Include the 1:N relationship
       .where('email = :email', { email })
       .andWhere('loginType = :loginType', {loginType})
@@ -111,7 +94,18 @@ export class UserService {
       .getOne()
 
     if (!!user) {
-      const dto = new UserLoginResponseDto(user, user.washingcarday);
+      var data = [];
+      console.log(user);
+      if(user.washingcarday.length > 0){
+        const now = new Date();
+        now.setHours(9,0,0,0);
+
+        if(user.washingcarday[0].started_at >= now){
+          data = user.washingcarday;
+        }
+      }
+
+      const dto = new UserLoginResponseDto(user, data);
       dto.accessToken = generateAccessToken(user.getUserId);
       return dto;
     } else throw new NotFoundException();
@@ -133,33 +127,6 @@ export class UserService {
       .execute();
     if (result.affected !== 0) {
       return new BasicMessageDto('Updated Successfully.');
-    } else throw new NotFoundException();
-  }
-
-  async test(
-    userId: number
-  ): Promise<BasicMessageDto> {
-    const user = await this.userRepository
-      .createQueryBuilder()
-      .select()
-      .where('userId = :userId', { userId })
-      .getOne();
-
-      console.log(user.fcmToken);
-
-    if (user) {
-      // Send a message to the device corresponding to the provided registration token
-      const message = {
-        token: user.fcmToken,
-        notification: {
-          title: 'test',
-          body: 'tesbody',
-        },
-      };
-
-      const response = await admin.messaging().send(message);
-
-      return new BasicMessageDto('semd fcm success');
     } else throw new NotFoundException();
   }
 }
