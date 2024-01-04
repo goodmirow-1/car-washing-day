@@ -22,8 +22,20 @@ export class Washingcarday extends BaseEntity{
     @Column({ type: 'datetime', nullable: false })
     finished_at: Date;
 
+    @Column({nullable: false })
+    nx: number;
+
+    @Column({nullable: false })
+    ny: number;
+
+    @Column({nullable: false })
+    regId: string;
+
+    @Column({nullable: false })
+    custom_pop: number;
+
     @Column()
-    checkUpdate: boolean;
+    check_update: boolean;
 
     @CreateDateColumn({ type: 'datetime', nullable: false })
     private created_at: Date;
@@ -45,7 +57,19 @@ export class Washingcarday extends BaseEntity{
     }
 
     get getCheckUpdate(): boolean{
-        return this.checkUpdate;
+        return this.check_update;
+    }
+
+    get getNx(): number{
+        return this.nx;
+    }
+
+    get getNy(): number{
+        return this.ny;
+    }
+
+    get getRegId(): string{
+        return this.regId;
     }
 
     get getCreatedAt(): Date {
@@ -64,11 +88,31 @@ export class Washingcarday extends BaseEntity{
         this.finished_at = finished_at;
     }
 
+    set setNx(nx: number){
+        this.nx = nx;
+    }
+
+    set setNy(ny: number){
+        this.ny = ny;
+    }
+
+    set setRegId(regId: string){
+        this.regId = regId;
+    }
+
     set setCheckUpdate(check: boolean){
-        this.checkUpdate = check;
+        this.check_update = check;
     }
 
     set setUser(user: User){
         this.user = user;
+    }
+
+    set setCustomPop(pop: number){
+        this.custom_pop = pop;
+    }
+  
+    get getCustomPop(): number{
+        return this.custom_pop;
     }
 }

@@ -8,7 +8,7 @@ export class WeatherController {
   constructor(  @InjectRedis() private readonly client: Redis) {}
 
   @Get('short/:nx/:ny')
-  async getShotForm(@Param('nx') nx: string, @Param('ny') ny:string) {
+  async getShortForm(@Param('nx') nx: string, @Param('ny') ny:string) {
     const now = new Date();
     const dateString = now.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
     const timeString = now.toTimeString().split(' ')[0].replaceAll(':', '').substring(0,4); // 'HH:MM:SS' 형식
@@ -18,15 +18,10 @@ export class WeatherController {
 
   @Get('middle/:regId')
   async getMiddleForm(@Param('regId') regId: string) {
-    return await this.generateMiddleWeatherData(regId);
-  }
-
-  async generateMiddleWeatherData(key){
-    var dataString = await this.client.get(key);
+    var dataString = await this.client.get(regId);
     var weather = JSON.parse(dataString);
     return weather;
   }
-
 
   async generateWeatherData(key, today, now){
     var dataString = await this.client.get(key);
@@ -55,8 +50,6 @@ export class WeatherController {
 
       var fcstDate: number = Number(weather.fcstDate);
       var fcstTime: number = Number(weather.fcstTime);
-
-
 
       if(fcstDate == today){  //오늘
         if(now <= fcstTime){
