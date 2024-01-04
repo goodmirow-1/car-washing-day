@@ -9,35 +9,45 @@ import {
     JoinColumn
 } from 'typeorm';
 
+import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../user/entities/user.entity'
 
 @Entity({ name: 'washingcarday' })
 export class Washingcarday extends BaseEntity{
     @PrimaryGeneratedColumn()
+    @ApiProperty({ description: '고유 ID' })
     id: number;
 
     @Column({ type: 'datetime', nullable: false })
+    @ApiProperty({ description: '세차 시작일' })
     started_at: Date;
 
     @Column({ type: 'datetime', nullable: false })
+    @ApiProperty({ description: '지속 만료일' })
     finished_at: Date;
 
     @Column({nullable: false })
+    @ApiProperty({ description: '단기 nx' })
     nx: number;
 
     @Column({nullable: false })
+    @ApiProperty({ description: '단기 ny' })
     ny: number;
 
     @Column({nullable: false })
+    @ApiProperty({ description: '중기 regId' })
     regId: string;
 
     @Column({nullable: false })
+    @ApiProperty({ description: '사용자 강수 무시 확률' })
     custom_pop: number;
 
     @Column()
+    @ApiProperty({ description: '기후 변화로 지속일이 변한적이 있나' })
     check_update: boolean;
 
     @CreateDateColumn({ type: 'datetime', nullable: false })
+    @ApiProperty({ description: '세차 등록일' })
     private created_at: Date;
 
     @ManyToOne(() => User, (user) => user.washingcarday)

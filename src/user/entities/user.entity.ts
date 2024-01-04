@@ -7,45 +7,57 @@ import {
     UpdateDateColumn,
     PrimaryGeneratedColumn,
   } from 'typeorm';
-
+  import { ApiProperty } from '@nestjs/swagger';
   import { Washingcarday } from '../../washingcarday/entities/washingcarday.entity';
 
   @Entity({ name: 'user' })
 export class User extends BaseEntity{
     @PrimaryGeneratedColumn()
+    @ApiProperty({ description: '고유 ID' })
     userId: number;
 
     @Column({ nullable: false, unique: true })
+    @ApiProperty({ description: '이메일' })
     private email: string;
 
     @Column({ nullable: false})
+    @ApiProperty({ description: '로그인 유형' })
     private loginType: string;
 
     @Column({ nullable: false})
+    @ApiProperty({ description: '닉네임' })
     private nickName: string;
 
     @Column({ nullable: false})
+    @ApiProperty({ description: '주소' })
     private address: string
 
     @Column({ nullable: true})
+    @ApiProperty({ description: 'fcm 토큰' })
     public fcmToken: string;
 
     @Column({ nullable: false})
+    @ApiProperty({ description: '뱃지 카운트' })
     private badgeCount: number;
 
     @Column({ nullable: false})
+    @ApiProperty({ description: '알람 여부' })
     private alarm: boolean;
 
     @Column({ nullable: false})
+    @ApiProperty({ description: '사용자 강수 확률' })
     custom_pop: number;
 
     @OneToMany(() => Washingcarday, (washingcarday) => washingcarday.user)
+    @ApiProperty({ description: '등록한 세차일' })
     washingcarday: Washingcarday[];
 
     @CreateDateColumn({ type: 'datetime', nullable: false })
+    @ApiProperty({ description: '가입일' })
     private created_at: Date;
   
     @UpdateDateColumn({ type: 'datetime', nullable: false })
+    @ApiProperty({ description: '수정일' })
     private last_modified_at: Date;
 
     get getUserId(): number {

@@ -5,8 +5,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto, UpdateFcmTokenDto } from './dto/update-user.dto';
+import { CreateUserDto, FcmTokenDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { UserLoginResponseDto } from './dto/user-login-response.dto';
@@ -113,7 +113,7 @@ export class UserService {
 
   async updateFcmToken(
     userId: number,
-    dto: UpdateFcmTokenDto,
+    dto: FcmTokenDto,
     token: string,
   ): Promise<BasicMessageDto> {
     if (extractUserId(token) !== userId) {

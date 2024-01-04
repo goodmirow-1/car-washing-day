@@ -1,13 +1,16 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 import { Weather } from '../services/weather';
 
 @Controller('weather')
+@ApiTags('날씨 예보 API')
 export class WeatherController {
   constructor(  @InjectRedis() private readonly client: Redis) {}
 
   @Get('short/:nx/:ny')
+  @ApiOperation({ summary: '단기예보 API', description: '단기예보에 해당하는 정보를 가져온다\n ex) nx : 61, ny : 127' })
   async getShortForm(@Param('nx') nx: string, @Param('ny') ny:string) {
     const now = new Date();
     const dateString = now.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
@@ -17,6 +20,7 @@ export class WeatherController {
   }
 
   @Get('middle/:regId')
+  @ApiOperation({ summary: '중기예보 API', description: '중기예보에 해당하는 정보를 가져온다\n ex) regId : 11B00000' })
   async getMiddleForm(@Param('regId') regId: string) {
     var dataString = await this.client.get(regId);
     var weather = JSON.parse(dataString);
