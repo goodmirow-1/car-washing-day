@@ -13,37 +13,23 @@ import {
 import { WashingcardayService } from './washingcarday.service';
 import { CreateWashingcardayDto } from './dto/create-washingcarday.dto';
 import { UpdateWashingcardayDto } from './dto/update-washingcarday.dto';
+import { WashingcardayInfoResponseDto } from './dto/washingcarday-info.dto';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Washingcarday } from './entities/washingcarday.entity';
 import IUserRequest from '../interfaces/user-request';
 
 @Controller('washingcarday')
+@ApiTags('세차일 API')
 export class WashingcardayController {
   constructor(private readonly washingcardayService: WashingcardayService) {}
 
   @Post(':userId')
+  @ApiOperation({ summary: '세차일 생성 API', description: '세차일을 생성한다.' })
+  @ApiResponse({ description: '세차일을 생성한다.', type: WashingcardayInfoResponseDto })
   create(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() createWashingcardayDto: CreateWashingcardayDto,
     @Req() req: IUserRequest) {
     return this.washingcardayService.create(userId, createWashingcardayDto, req.accessToken);
-  }
-
-  @Get()
-  findAll() {
-    return this.washingcardayService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.washingcardayService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWashingcardayDto: UpdateWashingcardayDto) {
-    return this.washingcardayService.update(+id, updateWashingcardayDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.washingcardayService.remove(+id);
   }
 }

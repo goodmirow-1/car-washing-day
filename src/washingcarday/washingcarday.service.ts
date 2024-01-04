@@ -10,6 +10,7 @@ import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 import { CreateWashingcardayDto } from './dto/create-washingcarday.dto';
 import { UpdateWashingcardayDto } from './dto/update-washingcarday.dto';
+import { WashingcardayInfoResponseDto } from './dto/washingcarday-info.dto';
 import { Washingcarday } from './entities/washingcarday.entity';
 import { BasicMessageDto } from '../common/basic-message.dto';
 import { Repository } from 'typeorm';
@@ -35,17 +36,17 @@ export class WashingcardayService {
     var possible = false;
 
     if(middle.rnSt3Am > pop) possible = true;
-    if(middle.rnSt3Pm > pop) possible = true;
-    if(middle.rnSt4Am > pop) possible = true;
-    if(middle.rnSt4Pm > pop) possible = true;
-    if(middle.rnSt5Am > pop) possible = true;
-    if(middle.rnSt5Pm > pop) possible = true;
-    if(middle.rnSt6Am > pop) possible = true;
-    if(middle.rnSt6Pm > pop) possible = true;
-    if(middle.rnSt7Am > pop) possible = true;
-    if(middle.rnSt8 > pop) possible = true;
-    if(middle.rnSt9 > pop) possible = true;
-    if(middle.rnSt10 > pop) possible = true;
+    if(!possible && middle.rnSt3Pm > pop) possible = true;
+    if(!possible && middle.rnSt4Am > pop) possible = true;
+    if(!possible && middle.rnSt4Pm > pop) possible = true;
+    if(!possible && middle.rnSt5Am > pop) possible = true;
+    if(!possible && middle.rnSt5Pm > pop) possible = true;
+    if(!possible && middle.rnSt6Am > pop) possible = true;
+    if(!possible && middle.rnSt6Pm > pop) possible = true;
+    if(!possible && middle.rnSt7Am > pop) possible = true;
+    if(!possible && middle.rnSt8 > pop) possible = true;
+    if(!possible && middle.rnSt9 > pop) possible = true;
+    if(!possible && middle.rnSt10 > pop) possible = true;
 
     return possible;
   }
@@ -273,23 +274,8 @@ export class WashingcardayService {
       const obj = await this.objCreateDtoToEntity(userId, dto);
 
       if(!!obj){
-        return await this.washingCarDayRepository.save(obj);
+        await this.washingCarDayRepository.save(obj);
+        return new WashingcardayInfoResponseDto(day);
       }else throw new NotFoundException();
-  }
-
-  findAll() {
-    return `This action returns all washingcarday`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} washingcarday`;
-  }
-
-  update(id: number, updateWashingcardayDto: UpdateWashingcardayDto) {
-    return `This action updates a #${id} washingcarday`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} washingcarday`;
   }
 }
