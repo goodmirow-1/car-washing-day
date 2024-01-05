@@ -61,4 +61,14 @@ export class UserController {
   ): Promise<BasicMessageDto> {
     return this.userService.updateFcmToken(userId, dto , req.accessToken);
   }
+
+  @Delete(':userId')
+  @ApiOperation({ summary: '회원 탈퇴 API', description: '탈퇴 한다.' })
+  @ApiResponse({ description: '탈퇴 한다.', type: BasicMessageDto })
+  delete(
+      @Param('userId', ParseIntPipe) userId: number,
+      @Req() req: IUserRequest,
+    ): Promise<BasicMessageDto> {
+    return this.userService.delete(userId, req.accessToken);
+  }
 }

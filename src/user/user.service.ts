@@ -22,8 +22,6 @@ import {
 
 @Injectable()
 export class UserService {
-
-  // constructor(private readonly userRepository: UserRepository) {}
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
@@ -94,6 +92,8 @@ export class UserService {
       .getOne()
 
     if (!!user) {
+      // if(user.getIsExit == true) throw new NotImplementedException('탈퇴한 회원입니다.');
+
       var data = [];
       console.log(user);
       if(user.washingcarday.length > 0){
@@ -108,7 +108,7 @@ export class UserService {
       const dto = new UserLoginResponseDto(user, data);
       dto.accessToken = generateAccessToken(user.getUserId);
       return dto;
-    } else throw new NotFoundException('Not Found User');
+    } else throw new NotFoundException();
   }
 
   async updateFcmToken(
@@ -128,5 +128,25 @@ export class UserService {
     if (result.affected !== 0) {
       return new BasicMessageDto('Updated Successfully.');
     } else throw new NotImplementedException("Not implemented update fcmtoken");
+  }
+
+  async delete(
+    userId: number,
+    token: string,
+  ): Promise<BasicMessageDto> {
+    if (extractUserId(token) !== userId) {
+      throw new ForbiddenException('Not authorized to udpate this user info.');
+    }
+
+    const result = await this.userRepository
+    .createQueryBuilder()
+    .update('user')
+    .set({ is_exit: true})
+    .where('userId = :userId', { userId })
+    .execute();
+
+    if (result.affected !== 0) {
+      return new BasicMessageDto('Updated Successfully.');
+    } else throw new NotImplementedException('Not Implemented update user');
   }
 }

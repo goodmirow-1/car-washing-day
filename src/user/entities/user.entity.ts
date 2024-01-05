@@ -48,6 +48,10 @@ export class User extends BaseEntity{
     @ApiProperty({ description: '사용자 강수 확률' })
     custom_pop: number;
 
+    @Column({ default: false})
+    @ApiProperty({ description: '탈퇴 유무' })
+    is_exit: boolean;
+
     @OneToMany(() => Washingcarday, (washingcarday) => washingcarday.user)
     @ApiProperty({ description: '등록한 세차일' })
     washingcarday: Washingcarday[];
@@ -90,6 +94,10 @@ export class User extends BaseEntity{
 
     get getFcmToken(): string {
       return this.fcmToken;
+    }
+
+    get getIsExit(): boolean {
+      return this.is_exit;
     }
 
     set setEmail(email: string){

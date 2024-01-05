@@ -10,6 +10,7 @@ export class UserResponseDto {
     this.badgeCount = user.getBadgeCount;
     this.alarm = user.getAlarm;
     this.custom_pop = user.getCustomPop;
+    this.is_exit = user.getIsExit;
     this.createdAt = user.getCreatedAt;
     this.lastModifiedAt = user.getLastModifiedAt;
   }
@@ -21,6 +22,7 @@ export class UserResponseDto {
   badgeCount: number;
   alarm: boolean;
   custom_pop: number;
+  is_exit: boolean;
   createdAt: Date;
   lastModifiedAt: Date;
 }

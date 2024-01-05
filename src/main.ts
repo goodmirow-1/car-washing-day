@@ -24,7 +24,7 @@ async function bootstrap() {
     }),
   );
 
-    setupSwagger(app);
+  setupSwagger(app);
 
   await app.listen(50012);
 }
