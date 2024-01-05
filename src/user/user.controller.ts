@@ -21,7 +21,7 @@ import IUserRequest from '../interfaces/user-request';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 
-@Controller('user')
+@Controller('v1/user')
 @ApiTags('유저 API')
 export class UserController {
   constructor(private readonly userService: UserService) {}

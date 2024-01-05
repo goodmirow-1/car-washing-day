@@ -8,8 +8,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
  */
 export function setupSwagger(app: INestApplication): void {
   const options = new DocumentBuilder()
-    .setTitle('NestJS Study API Docs')
-    .setDescription('NestJS Study API description')
+    .setTitle('세차언제 API 문서')
+    .setDescription('세차언제🚗🌧️')
     .setVersion('1.0.0')
     .build();
 

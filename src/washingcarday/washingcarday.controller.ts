@@ -18,7 +18,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Washingcarday } from './entities/washingcarday.entity';
 import IUserRequest from '../interfaces/user-request';
 
-@Controller('washingcarday')
+@Controller('v1/washingcarday')
 @ApiTags('세차일 API')
 export class WashingcardayController {
   constructor(private readonly washingcardayService: WashingcardayService) {}

@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  NotImplementedException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto, FcmTokenDto } from './dto/create-user.dto';
@@ -38,7 +39,6 @@ export class UserService {
   };
 
   private isEmailUsed = async (email: string): Promise<boolean> => {
-    // return await this.userRepository.isEmailUsed(email);
       return (
       (await this.userRepository
         .createQueryBuilder()
@@ -77,7 +77,7 @@ export class UserService {
       .execute();
     if (result.affected !== 0) {
       return new BasicMessageDto('Updated Successfully.');
-    } else throw new NotFoundException();
+    } else throw new NotImplementedException('Not Implemented update user');
   }
 
   async login(dto: UserLoginRequestDto): Promise<UserLoginResponseDto> {
@@ -108,7 +108,7 @@ export class UserService {
       const dto = new UserLoginResponseDto(user, data);
       dto.accessToken = generateAccessToken(user.getUserId);
       return dto;
-    } else throw new NotFoundException();
+    } else throw new NotFoundException('Not Found User');
   }
 
   async updateFcmToken(
@@ -127,6 +127,6 @@ export class UserService {
       .execute();
     if (result.affected !== 0) {
       return new BasicMessageDto('Updated Successfully.');
-    } else throw new NotFoundException();
+    } else throw new NotImplementedException("Not implemented update fcmtoken");
   }
 }

@@ -83,8 +83,8 @@ export class ScheduleService {
     }
   }
 
-  @Cron('00 07 * * *') //오전 7시 00분
-  async middleAmWatherHandleCron() {
+  @Cron('00 08 * * *') //오전 8시 00분
+  async middleAmWeatherHandleCron() {
     const regIdList: string[] = [];
 
     const filePath = path.join(process.cwd(), 'middle-grid.txt');
@@ -111,7 +111,7 @@ export class ScheduleService {
   }
 
   @Cron('20 18 * * *') //오후 6시 10분
-  async middlePmWatherHandleCron() {
+  async middlePmWeatherHandleCron() {
     const regIdList: string[] = [];
 
     const filePath = path.join(process.cwd(), 'middle-grid.txt');
