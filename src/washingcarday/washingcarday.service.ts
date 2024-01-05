@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  NotImplementedException
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -276,6 +277,6 @@ export class WashingcardayService {
       if(!!obj){
         await this.washingCarDayRepository.save(obj);
         return new WashingcardayInfoResponseDto(day);
-      }else throw new NotFoundException();
+      }else throw new NotImplementedException("can't create washingcardaydto");
   }
 }

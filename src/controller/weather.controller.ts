@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
 import { Weather } from '../services/weather';
 
-@Controller('weather')
+@Controller('v1/weather')
 @ApiTags('날씨 예보 API')
 export class WeatherController {
   constructor(  @InjectRedis() private readonly client: Redis) {}
@@ -22,94 +22,112 @@ export class WeatherController {
   @Get('middle/:regId')
   @ApiOperation({ summary: '중기예보 API', description: '중기예보에 해당하는 정보를 가져온다\n ex) regId : 11B00000' })
   async getMiddleForm(@Param('regId') regId: string) {
-    var dataString = await this.client.get(regId);
-    var weather = JSON.parse(dataString);
-    return weather;
+    try{
+      const dataString = await this.client.get(regId);
+
+      if (!dataString) {
+        throw new NotFoundException(`Data not found for regId: ${regId}`);
+      }
+  
+      const weather = JSON.parse(dataString);
+      return weather;
+    } catch (error) {
+      throw new InternalServerErrorException(`Failed to retrieve data for regId: ${regId}`, error.message);
+    }
   }
 
   async generateWeatherData(key, today, now){
-    var dataString = await this.client.get(key);
-    var data = '[' + dataString + ']';
-    var weatherList = JSON.parse(data);
-    
-    var todayAmList: Weather[] = [];
-    var todayPmList: Weather[] = [];
-    var tomorrowAmList: Weather[] = [];
-    var tomorrowPmList: Weather[] = [];
-    var afterTomorrowAmList:Weather[] = [];
-    var afterTomorrowPmList:Weather[] = [];
+    try{
+      var dataString = await this.client.get(key);
 
-    var todayAmRes;
-    var todayPmRes;
-    var tomorrowAmRes;
-    var tomorrowPmRes;
-    var afterTommorowAmRes;
-    var afterTommorowPmRes;
+      if (!dataString) {
+        throw new NotFoundException(`Data not found for regId: ${key}`);
+      }
 
-    var nowWeather;
-    var tommorowCheck = now >= 2300 ? true : false;
+      var data = '[' + dataString + ']';
+      var weatherList = JSON.parse(data);
+      
+      var todayAmList: Weather[] = [];
+      var todayPmList: Weather[] = [];
+      var tomorrowAmList: Weather[] = [];
+      var tomorrowPmList: Weather[] = [];
+      var afterTomorrowAmList:Weather[] = [];
+      var afterTomorrowPmList:Weather[] = [];
 
-    for(var i = 0 ; i < weatherList.length; ++i){
-      var weather = weatherList[i] as Weather;
+      var todayAmRes;
+      var todayPmRes;
+      var tomorrowAmRes;
+      var tomorrowPmRes;
+      var afterTommorowAmRes;
+      var afterTommorowPmRes;
 
-      var fcstDate: number = Number(weather.fcstDate);
-      var fcstTime: number = Number(weather.fcstTime);
+      var nowWeather;
+      var tommorowCheck = now >= 2300 ? true : false;
 
-      if(fcstDate == today){  //오늘
-        if(now <= fcstTime){
-          if(tommorowCheck == false && (fcstTime - now) <= 100){
+      for(var i = 0 ; i < weatherList.length; ++i){
+        var weather = weatherList[i] as Weather;
+
+        var fcstDate: number = Number(weather.fcstDate);
+        var fcstTime: number = Number(weather.fcstTime);
+
+        if(fcstDate == today){  //오늘
+          if(now <= fcstTime){
+            if(tommorowCheck == false && (fcstTime - now) <= 100){
+              nowWeather = weather;
+            }
+
+            if(fcstTime < 12){
+              todayAmList.push(weather);
+            }else{
+              todayPmList.push(weather);
+            }
+          }
+        }else if(fcstDate == (today + 1)){  //내일
+          if(tommorowCheck && fcstTime == 0){
             nowWeather = weather;
           }
 
           if(fcstTime < 12){
-            todayAmList.push(weather);
+            tomorrowAmList.push(weather);
           }else{
-            todayPmList.push(weather);
+            tomorrowPmList.push(weather);
+          }
+        }else if(fcstDate == (today + 2)){  //모레
+          if(fcstTime < 12){
+            afterTomorrowAmList.push(weather);
+          }else{
+            afterTomorrowPmList.push(weather);
           }
         }
-      }else if(fcstDate == (today + 1)){  //내일
-        if(tommorowCheck && fcstTime == 0){
-          nowWeather = weather;
-        }
-
-        if(fcstTime < 12){
-          tomorrowAmList.push(weather);
-        }else{
-          tomorrowPmList.push(weather);
-        }
-      }else if(fcstDate == (today + 2)){  //모레
-        if(fcstTime < 12){
-          afterTomorrowAmList.push(weather);
-        }else{
-          afterTomorrowPmList.push(weather);
-        }
       }
+
+      todayAmRes = this.calculateWeatherData(todayAmList);
+      todayPmRes = this.calculateWeatherData(todayPmList);
+      tomorrowAmRes = this.calculateWeatherData(tomorrowAmList);
+      tomorrowPmRes = this.calculateWeatherData(tomorrowPmList);
+      afterTommorowAmRes = this.calculateWeatherData(afterTomorrowAmList);
+      afterTommorowPmRes = this.calculateWeatherData(afterTomorrowPmList);
+
+      var res = {
+        now : nowWeather,
+        rnSt0Am : todayAmRes[0],
+        rnSt0Pm : todayPmRes[0],
+        rnSt1Am : tomorrowAmRes[0],
+        rnSt1Pm : tomorrowPmRes[0],
+        rnSt2Am : afterTommorowAmRes[0],
+        rnSt2Pm : afterTommorowAmRes[0],
+        wf0Am : todayAmRes[1],
+        wf0Pm : todayPmRes[1],
+        wf1Am : tomorrowAmRes[1],
+        wf1Pm : tomorrowPmRes[1],
+        wf2Am : afterTommorowAmRes[1],
+        wf2Pm : afterTommorowAmRes[1],
+      }
+
+      return res;
+    }catch (error) {
+      throw new InternalServerErrorException(`Failed to retrieve data for regId: ${key}`, error.message);
     }
-
-    todayAmRes = this.calculateWeatherData(todayAmList);
-    todayPmRes = this.calculateWeatherData(todayPmList);
-    tomorrowAmRes = this.calculateWeatherData(tomorrowAmList);
-    tomorrowPmRes = this.calculateWeatherData(tomorrowPmList);
-    afterTommorowAmRes = this.calculateWeatherData(afterTomorrowAmList);
-    afterTommorowPmRes = this.calculateWeatherData(afterTomorrowPmList);
-
-    var res = {
-      now : nowWeather,
-      rnSt0Am : todayAmRes[0],
-      rnSt0Pm : todayPmRes[0],
-      rnSt1Am : tomorrowAmRes[0],
-      rnSt1Pm : tomorrowPmRes[0],
-      rnSt2Am : afterTommorowAmRes[0],
-      rnSt2Pm : afterTommorowAmRes[0],
-      wf0Am : todayAmRes[1],
-      wf0Pm : todayPmRes[1],
-      wf1Am : tomorrowAmRes[1],
-      wf1Pm : tomorrowPmRes[1],
-      wf2Am : afterTommorowAmRes[1],
-      wf2Pm : afterTommorowAmRes[1],
-    }
-
-    return res;
   }
 
   calculateWeatherData(list){
