@@ -44,6 +44,7 @@ export class ScheduleService {
     });
 
     const now = new Date();
+    now.setHours(now.getHours() + 9);
     const dateString = now.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
 
     await this.setShortWeatherData(xList,yList,dateString, '0500');
@@ -73,6 +74,7 @@ export class ScheduleService {
     });
 
     const now = new Date();
+    now.setHours(now.getHours() + 9);
     const dateString = now.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
 
     await this.setShortWeatherData(xList,yList,dateString, '1700');
@@ -83,7 +85,8 @@ export class ScheduleService {
     }
   }
 
-  @Cron('00 08 * * *') //오전 8시 00분
+  // @Cron(CronExpression.EVERY_SECOND)
+  @Cron('20 06 * * *') //오전 8시 00분
   async middleAmWeatherHandleCron() {
     const regIdList: string[] = [];
 
@@ -98,10 +101,10 @@ export class ScheduleService {
     });
 
     const now = new Date();
+    now.setHours(now.getHours() + 9);
     const dateString = now.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
 
     console.log(dateString);
-
     await this.setMiddleWeatherData(regIdList, dateString+'0600');
 
     //실패한 리스트 재시도
@@ -125,6 +128,7 @@ export class ScheduleService {
     });
 
     const now = new Date();
+    now.setHours(now.getHours() + 9);
     const dateString = now.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
 
     console.log(dateString);
