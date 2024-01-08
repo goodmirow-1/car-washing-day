@@ -36,11 +36,11 @@ export class User extends BaseEntity{
     @ApiProperty({ description: 'fcm 토큰' })
     public fcmToken: string;
 
-    @Column({ nullable: false})
+    @Column({ default: 0})
     @ApiProperty({ description: '뱃지 카운트' })
     private badgeCount: number;
 
-    @Column({ nullable: false})
+    @Column({ default: true})
     @ApiProperty({ description: '알람 여부' })
     private alarm: boolean;
 

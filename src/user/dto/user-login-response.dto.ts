@@ -12,6 +12,8 @@ export class UserLoginResponseDto {
     this.address = user.getAddress;
     this.badgeCount = user.getBadgeCount;
     this.alarm = user.getAlarm;
+    this.custom_pop = user.getCustomPop;
+    this.is_exit = user.getIsExit;
     this.createdAt = user.getCreatedAt;
     this.washingcardays = washingcardays;
     this.schema = 'Bearer';
@@ -37,6 +39,12 @@ export class UserLoginResponseDto {
 
   @ApiPropertyOptional({ description: '알람 여부' })
   alarm: boolean;
+
+  @ApiPropertyOptional({ description: '사용자 강수 무시 확률' })
+  custom_pop: number;
+
+  @ApiPropertyOptional({ description: '탈퇴 여부' })
+  is_exit: boolean;
 
   @ApiPropertyOptional({ description: 'auth에 필요한 값' })
   schema: string;

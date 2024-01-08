@@ -36,6 +36,7 @@ import { WashingcardayModule } from './washingcarday/washingcarday.module';
     entities: ['dist/**/*.entity{.ts,.js}'],
     synchronize: true,
     logging: true,
+    timezone: 'Asia/Seoul'
   }),UserModule, WashingcardayModule ],
   controllers: [WeatherController],
   providers: [RedisService,WeatherService,ScheduleService],

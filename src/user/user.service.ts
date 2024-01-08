@@ -95,7 +95,6 @@ export class UserService {
       // if(user.getIsExit == true) throw new NotImplementedException('탈퇴한 회원입니다.');
 
       var data = [];
-      console.log(user);
       if(user.washingcarday.length > 0){
         const now = new Date();
         now.setHours(9,0,0,0);
