@@ -8,5 +8,9 @@ export class BasicMessageDto {
 
     @ApiPropertyOptional({})
     private message: string;
-  }
+
+    get getMessage() : string{
+      return this.message;
+    }
+}
   

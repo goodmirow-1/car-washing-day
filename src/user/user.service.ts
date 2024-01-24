@@ -33,6 +33,7 @@ export class UserService {
     user.setNickName = dto.nickName;
     user.setAddress = dto.address;
     user.setCustomPop = dto.custom_pop;
+    user.setAlarm = dto.alarm;
     return user;
   };
 
@@ -43,12 +44,12 @@ export class UserService {
         .select('u.userId')
         .from(User, 'u')
         .where('u.email = :email', { email })
-        .getOne()) !== undefined
+        .getOne()) !== null
     );
   };
 
   async saveUser(dto: CreateUserDto): Promise<UserResponseDto> {
-    if (false == await this.isEmailUsed(dto.email)) {
+    if (await this.isEmailUsed(dto.email)) {
       throw new ConflictException('Email is already in use!');
     } else {
       const user = await this.userRepository.save(
@@ -58,11 +59,32 @@ export class UserService {
     }
   }
 
+  async getUserInfo(
+    userId: number,
+    token: string,
+  ): Promise<UserResponseDto> {
+    if (extractUserId(token) !== userId) {
+      throw new ForbiddenException('Not authorized to get this user info.');
+    }
+    const user = await this.userRepository
+    .createQueryBuilder()
+    .select()
+    .where('userId = :userId', { userId })
+    .getOne();
+    if (!!user) {
+      return new UserResponseDto(user);
+    } else throw new NotFoundException();
+  }
+
   async update(
     userId: number,
     dto: UpdateUserDto,
     token: string,
     ) : Promise<BasicMessageDto> {
+      if(userId <= 0) {
+        throw new NotFoundException(); 
+      }
+      
       if (extractUserId(token) !== userId) {
         throw new ForbiddenException('Not authorized to udpate this user info.');
       }
@@ -73,9 +95,10 @@ export class UserService {
       .update('user', { ...dto })
       .where('userId = :userId', { userId })
       .execute();
+
     if (result.affected !== 0) {
       return new BasicMessageDto('Updated Successfully.');
-    } else throw new NotImplementedException('Not Implemented update user');
+    } else throw new NotFoundException();
   }
 
   async login(dto: UserLoginRequestDto): Promise<UserLoginResponseDto> {
@@ -97,9 +120,12 @@ export class UserService {
       var data = [];
       if(user.washingcarday.length > 0){
         const now = new Date();
-        now.setHours(9,0,0,0);
+        now.setHours(8,59,59,0);
 
-        if(user.washingcarday[0].started_at >= now){
+        const start = new Date(user.washingcarday[0].started_at);
+        start.setHours(9,0,0,0);
+
+        if(start >= now){
           data = user.washingcarday;
         }
       }
