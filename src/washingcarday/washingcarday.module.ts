@@ -10,11 +10,13 @@ import { Washingcarday } from './entities/washingcarday.entity';
 import { WashingcardayService } from './washingcarday.service';
 import { WashingcardayController } from './washingcarday.controller';
 import { User } from '../user/entities/user.entity';
+import { WashingcardayRepository } from './entities/washingcarday.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Washingcarday,User])],
   controllers: [WashingcardayController],
-  providers: [WashingcardayService],
+  providers: [WashingcardayService,WashingcardayRepository],
+  exports: [ WashingcardayRepository ]
 })
 export class WashingcardayModule implements NestModule{
   configure(consumer: MiddlewareConsumer) {

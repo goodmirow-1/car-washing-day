@@ -130,3 +130,5 @@ dist
 .pnp.*
 
 car-washing-day-firebase-adminsdk-7152d-e9cc7f0cd6.json
+
+src/utils/connections/

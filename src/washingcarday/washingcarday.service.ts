@@ -16,7 +16,7 @@ import { Washingcarday } from './entities/washingcarday.entity';
 import { BasicMessageDto } from '../common/basic-message.dto';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
-import { admin } from '../firebase/firebaseAdmin';
+// import { admin } from '../firebase/firebaseAdmin';
 
 import {
   extractUserId,
@@ -28,10 +28,14 @@ export class WashingcardayService {
   constructor(
     @InjectRepository(Washingcarday) private washingCarDayRepository: Repository<Washingcarday>,
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRedis() private readonly client: Redis
+    @InjectRedis() private client: Redis
   ) {}
 
   private check: boolean = false;
+
+  async closeRedis() {
+    await this.client.quit();
+  }
 
   isRainPossibleDay(middle, pop){
     var possible = false;
@@ -127,11 +131,11 @@ export class WashingcardayService {
         },
       };
 
-      admin.messaging().sendMulticast(message).then((response) => {
-        console.log('push send success', response.successCount);
-      }).catch(function (error) {
-        console.log('push send failed' + error);
-      });
+      // admin.messaging().sendMulticast(message).then((response) => {
+      //   console.log('push send success', response.successCount);
+      // }).catch(function (error) {
+      //   console.log('push send failed' + error);
+      // });
   }
 
   // @Cron(CronExpression.EVERY_SECOND)
@@ -214,11 +218,11 @@ export class WashingcardayService {
         },
       };
 
-      admin.messaging().sendMulticast(message).then((response) => {
-        console.log('push send success', response.successCount);
-      }).catch(function (error) {
-        console.log('push send failed' + error);
-      });
+      // admin.messaging().sendMulticast(message).then((response) => {
+      //   console.log('push send success', response.successCount);
+      // }).catch(function (error) {
+      //   console.log('push send failed' + error);
+      // });
     }
   }
 
@@ -259,6 +263,7 @@ export class WashingcardayService {
         .leftJoinAndSelect('washingcarday.user', 'user') // Assuming 'users' is the name of the relationship in WashingCarDay entity
         .select()
         .where('washingcarday.started_at >= :now', { now }) // Using parameters to avoid SQL injection
+        .andWhere('user.userId = :userId', {userId})
         .getOne();
 
         if(!!day){
@@ -275,8 +280,28 @@ export class WashingcardayService {
       const obj = await this.objCreateDtoToEntity(userId, dto);
 
       if(!!obj){
-        await this.washingCarDayRepository.save(obj);
-        return new WashingcardayInfoResponseDto(day);
+        const newDay = await this.washingCarDayRepository.save(obj);
+        return new WashingcardayInfoResponseDto(newDay);
       }else throw new NotImplementedException("can't create washingcardaydto");
+  }
+
+  async delete(
+    userId: number,
+    warshingdayId: number,
+    token: string,
+  ): Promise<BasicMessageDto> {
+    if (extractUserId(token) !== userId) {
+      throw new ForbiddenException('Not authorized to udpate this user info.');
+    }
+
+    const result = await this.washingCarDayRepository
+    .createQueryBuilder('washingcarday')
+    .delete()
+    .where('id = :warshingdayId', { warshingdayId })
+    .execute();
+
+    if (result.affected !== 0) {
+      return new BasicMessageDto('deleted Successfully.');
+    } else throw new NotImplementedException('Not Implemented update user');
   }
 }

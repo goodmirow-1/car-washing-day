@@ -147,30 +147,23 @@ export class WeatherController {
 
     //강수형태
     var ptyList: number[] = [];
-    var check = false;
     for(var i = 0 ; i < list.length ; ++i){
       ptyList.push((list[i].pty * 1));
-
-      if(list[i].pty != '0'){
-        check = true;
-      }
     }
 
-    if(check){
-      const counts = this.countOccurrences(ptyList);
-      const mostFrequent = this.findMostFrequent(counts);
-      wf = this.getWeatherString(mostFrequent[0], true);
-    }else{
-      //하늘상태
-      var skyList: number[] = [];
-      for(var i = 0 ; i < list.length ; ++i){
-        skyList.push((list[i].sky * 1));
-      }
-
-      const counts = this.countOccurrences(skyList);
-      const mostFrequent = this.findMostFrequent(counts);
-      wf = this.getWeatherString(mostFrequent[0], false);
+    //하늘상태
+    var skyList: number[] = [];
+    for(var i = 0 ; i < list.length ; ++i){
+      skyList.push((list[i].sky * 1));
     }
+
+    const ptyCounts = this.countOccurrences(ptyList);
+    const mostPtyFrequent = this.findMostFrequent(ptyCounts);
+
+    const skyCounts = this.countOccurrences(skyList);
+    const mostSkyFrequent = this.findMostFrequent(skyCounts);
+
+    wf = this.getWeatherString(mostPtyFrequent[0], mostSkyFrequent[0]);
 
     return [rnSt, wf];
   }
@@ -190,24 +183,33 @@ export class WeatherController {
     return Object.entries(counts).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
   }
 
-  getWeatherString(type,isPty){
-    var res:string = '';
+  getWeatherString(pty,sky){
+    var ptyStr:string = '';
+    var skyStr:string = '';
 
-    if(isPty){
-      switch(type){
-        case '0': res = '없음'; break;
-        case '1': res = '비' ; break;
-        case '2': res = '비/눈'; break;
-        case '3': res = '소나기'; break;
+    switch(pty){
+      case '1': ptyStr = '비' ; break;
+      case '2': ptyStr = '비/눈'; break;
+      case '3': ptyStr = '눈'; break;
+      case '4': ptyStr = '소나기'; break;
+    }
+
+    if(sky == 1){
+      skyStr = '맑음';
+    }
+
+    if(pty == 0){
+      switch(sky){
+        case '3': skyStr = '구름많음' ; break;
+        case '4': skyStr = '흐림'; break;
       }
     }else{
-      switch(type){
-        case '1': res = '맑음'; break;
-        case '3': res = '구름많음' ; break;
-        case '4': res = '흐림'; break;
+      switch(sky){
+        case '3': skyStr = '구름많고 ' ; break;
+        case '4': skyStr = '흐리고 '; break;
       }
     }
     
-    return res;
+    return skyStr + ptyStr;
   }
 }

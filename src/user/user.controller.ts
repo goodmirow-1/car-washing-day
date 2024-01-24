@@ -35,7 +35,7 @@ export class UserController {
 
   @Patch(':userId')
   @ApiOperation({ summary: '유저 수정 API', description: '유저의 정보를 수정한다. create에서 email을 제외하고 보낼 것' })
-  @ApiResponse({ description: '유저를 생성한다.', type: BasicMessageDto })
+  @ApiResponse({ description: '유저를 수정한다.', type: BasicMessageDto })
   update(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: UpdateUserDto,

@@ -6,11 +6,11 @@ export class CreateWashingcardayDto {
 
     @ApiPropertyOptional({ description: '세차 시작일' })
     @IsString()
-    started_at: Date;
+    started_at: string;
 
     @ApiPropertyOptional({ description: '지속 종료일' })
     @IsString()
-    finished_at: Date;
+    finished_at: string;
 
     @ApiPropertyOptional({ description: '단기 nx' })
     @IsNumber()
