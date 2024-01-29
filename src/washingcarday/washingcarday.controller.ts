@@ -44,4 +44,12 @@ export class WashingcardayController {
     ): Promise<BasicMessageDto> {
     return this.washingcardayService.delete(userId, warshingdayId, req.accessToken);
   }
+
+  @Get('/test')
+  @ApiOperation({ summary: '세차일 fcm test', description: 'fcm test용.' })
+  @ApiResponse({ description: 'fcm token send message test용.', type: BasicMessageDto })
+  get(
+    ): Promise<BasicMessageDto> {
+    return this.washingcardayService.test();
+  }
 }
