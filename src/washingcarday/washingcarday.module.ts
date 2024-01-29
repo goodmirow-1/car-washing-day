@@ -23,7 +23,10 @@ export class WashingcardayModule implements NestModule{
     consumer
       .apply(UserAuthMiddleware)
       .exclude(
-        
+        {
+          path: 'v1/washingcarday/test',
+          method: RequestMethod.GET,
+        },
       )
       .forRoutes(WashingcardayController);
   }

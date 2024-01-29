@@ -84,7 +84,7 @@ export class UserService {
       if(userId <= 0) {
         throw new NotFoundException(); 
       }
-      
+
       if (extractUserId(token) !== userId) {
         throw new ForbiddenException('Not authorized to udpate this user info.');
       }
