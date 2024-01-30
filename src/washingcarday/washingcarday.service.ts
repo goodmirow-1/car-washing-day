@@ -56,187 +56,118 @@ export class WashingcardayService {
     return possible;
   }
 
-  @Cron('00 07 * * *') //오전 7시 - 오늘 세차일 변경 확인
-  async checkTodayWashingDay() {
-    const now = new Date();
-    now.setHours(9,0,0,0);
-
-    const days = await this.washingCarDayRepository
-    .createQueryBuilder('washingcarday') // Alias for the WashingCarDay entity
-    .leftJoinAndSelect('washingcarday.user', 'user') // Assuming 'users' is the name of the relationship in WashingCarDay entity
-    .select()
-    .where('washingcarday.started_at = :now', { now }) // Using parameters to avoid SQL injection
-    .getMany();
-
-    var tokens = [];
-    var tokens2 = [];
-    for (const day of days) {
-      
-      //단기
-      var dataString = await this.client.get(day.nx+ '/' + day.ny);
-      var data = '[' + dataString + ']';
-      var weatherList = JSON.parse(data);
-
-      var start = day.started_at.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
-      var finish = day.finished_at.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
-
-      var go = true;
-      for(const weather of weatherList){
-        if(weather.fcstDate >= start && weather.fcstDate <= finish){
-          if(day.custom_pop < (weather.pop * 1)){
-            const id = day.id;
-
-            await this.washingCarDayRepository
-            .createQueryBuilder()
-            .update('washingcarday')
-            .set({ check_update: true})
-            .where('id = :id', { id })
-            .execute();
-
-            const token = day.user.fcmToken;
-            tokens.push(token);
-            go = false;
-
-            break;
-          }
-        }
-      }
-
-      //중기
-      if(go){
-        dataString = await this.client.get(day.regId);
-        var middle = JSON.parse(dataString);
-
-        if(this.isRainPossibleDay(middle,day.custom_pop)){
-          const id = day.id;
-
-            await this.washingCarDayRepository
-            .createQueryBuilder()
-            .update('washingcarday')
-            .set({ check_update: true})
-            .where('id = :id', { id })
-            .execute();
-
-            const token = day.user.fcmToken;
-            if(token != null){
-              tokens.push(token);
-            }
-        }else{
-          const token = day.user.fcmToken;
-          if(token != null){
-            tokens2.push(token);
-          }
-        }
-      }
-    }
-
-    //당일에 세차일이 변한 경우
-    {
-      const message = {
-        tokens: tokens,
-        notification: {
-          title: '세차언제',
-          body: '등록하신 세차일의 지속일이 기상변화로 인해 변경되었어요😰 어플을 통해 변경된 지속일을 확인해봐요!✅',
-        },
-      };
-
-      admin.messaging().sendMulticast(message).then((response) => {
-        console.log('push send success', response.successCount);
-      }).catch(function (error) {
-        console.log('push send failed' + error);
-      });
-    }
+  async checkWashingDay(offsetDays = 0) {
+    const now = this.setDateWithOffset(offsetDays);
+    const days = await this.getWashingCarDays(now);
     
-    //당일에 세차일이 변하지 않은 경우
-    {
-      const message2 = {
-        tokens: tokens2,
-        notification: {
-          title: '세차언제',
-          body: '등록하신 세차일일이 되었어요😄 성공적인 세차가 되길 바랄께요!🙏',
-        },
-      };
+    const { tokensToUpdate, tokensToKeep } = await this.processWashingDays(days);
 
-      admin.messaging().sendMulticast(message2).then((response) => {
-        console.log('push send success', response.successCount);
-      }).catch(function (error) {
-        console.log('push send failed' + error);
-      });
+    if (offsetDays === 0) {
+      this.sendNotification(tokensToUpdate, '오늘 날짜로 등록하신 세차일의 지속일이 기상변화로 인해 변경되었어요😰 어플을 통해 변경된 지속일을 확인해봐요!✅');
+      this.sendNotification(tokensToKeep, '성공적인 세차가 되길 바랄께요!🙏');
+    } else {
+      this.sendNotification(tokensToUpdate, '내일 날짜로 등록하신 세차일의 지속일이 기상변화로 인해 변경되었어요😰 어플을 통해 변경된 지속일을 확인해봐요!✅');
     }
   }
 
-  @Cron('03 07 * * *') //오전 7시 - 내일 알림 세차일 변경 체크 확인
-  async checkTommorowWashingDay() {
-    const now = new Date();
-    now.setDate(now.getDate() + 1);
-    now.setHours(9,0,0,0);
+  setDateWithOffset(offsetDays) {
+    const date = new Date();
+    date.setDate(date.getDate() + offsetDays);
+    date.setHours(9, 0, 0, 0);
+    return date;
+  }
 
-    const days = await this.washingCarDayRepository
+  async getWashingCarDays(date) {
+    // DB 조회 로직
+    return await this.washingCarDayRepository
     .createQueryBuilder('washingcarday') // Alias for the WashingCarDay entity
     .leftJoinAndSelect('washingcarday.user', 'user') // Assuming 'users' is the name of the relationship in WashingCarDay entity
     .select()
-    .where('washingcarday.started_at = :now', { now }) // Using parameters to avoid SQL injection
+    .where('washingcarday.started_at = :date', { date }) // Using parameters to avoid SQL injection
     .getMany();
+  }
 
-    var tokens = [];
+  async processWashingDays(days) {
+    let tokensToUpdate = [];
+    let tokensToKeep = [];
+
     for (const day of days) {
-      
-      //단기
-      var dataString = await this.client.get(day.nx+ '/' + day.ny);
-      var data = '[' + dataString + ']';
-      var weatherList = JSON.parse(data);
+        const weatherList = await this.fetchWeatherData(day.nx, day.ny);
+        const middleWeatherData = await this.fetchMiddleTermWeatherData(day.regId);
 
-      var start = day.started_at.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
-      var finish = day.finished_at.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
+        let shouldUpdate = this.checkWeatherCondition(weatherList, this.formatDate(day.started_at), this.formatDate(day.finished_at), day.custom_pop);
 
-      var go = true;
-      for(const weather of weatherList){
-        if(weather.fcstDate >= start && weather.fcstDate <= finish){
-          if(day.custom_pop < (weather.pop * 1)){
-            const id = day.id;
-
-            await this.washingCarDayRepository
-            .createQueryBuilder()
-            .update('washingcarday')
-            .set({ check_update: true})
-            .where('id = :id', { id })
-            .execute();
-
-            const token = day.user.fcmToken;
-            tokens.push(token);
-            go = false;
-
-            break;
-          }
+        if (!shouldUpdate) {
+            shouldUpdate = this.isRainPossibleDay(middleWeatherData, day.custom_pop);
         }
-      }
 
-      //중기
-      if(go){
-        dataString = await this.client.get(day.regId);
-        var middle = JSON.parse(dataString);
-
-        if(this.isRainPossibleDay(middle,day.custom_pop)){
-          const id = day.id;
-
-            await this.washingCarDayRepository
-            .createQueryBuilder()
-            .update('washingcarday')
-            .set({ check_update: true})
-            .where('id = :id', { id })
-            .execute();
-
-            const token = day.user.fcmToken;
-            tokens.push(token);
+        const token = day.user.fcmToken;
+        if (shouldUpdate) {
+            await this.updateWashingCarDay(day.id);
+            if (token) tokensToUpdate.push(token);
+        } else {
+            if (token) tokensToKeep.push(token);
         }
-      }
     }
 
+    return { tokensToUpdate, tokensToKeep };
+  }
+
+  async fetchWeatherData(nx, ny) {
+      // Fetch short-term weather data and parse it
+      const dataString = await this.client.get(`${nx}/${ny}`);
+      return JSON.parse(`[${dataString}]`);
+  }
+
+  async fetchMiddleTermWeatherData(regId) {
+      // Fetch middle-term weather data and parse it
+      const dataString = await this.client.get(regId);
+      return JSON.parse(dataString);
+  }
+
+  checkWeatherCondition(weatherList, startDate, endDate, customPop) {
+      // Check weather conditions within the given date range
+      for (const weather of weatherList) {
+          if (weather.fcstDate >= startDate && weather.fcstDate <= endDate) {
+              if (customPop < (weather.pop * 1)) {
+                  return true;
+              }
+          }
+      }
+      return false;
+  }
+
+  async updateWashingCarDay(id) {
+      // Update the WashingCarDay entity
+      await this.washingCarDayRepository
+          .createQueryBuilder()
+          .update('washingcarday')
+          .set({ check_update: true })
+          .where('id = :id', { id })
+          .execute();
+  }
+
+  async deleteWashingCarDay(id){
+    return await this.washingCarDayRepository
+    .createQueryBuilder('washingcarday')
+    .delete()
+    .where('id = :dayId', { id })
+    .execute();
+  }
+
+  formatDate(date) {
+      // Format the date to 'YYYYMMDD'
+      return date.toISOString().split('T')[0].replaceAll('-', '');
+  }
+
+  sendNotification(tokens, bodyMessage,) {
+    if(tokens.length == 0) return;
+    // Push 메시지 발송 로직
     const message = {
       tokens: tokens,
       notification: {
         title: '세차언제',
-        body: '등록하신 세차일의 지속일이 기상변화로 인해 변경되었어요😰 어플을 통해 변경된 지속일을 확인해봐요!',
+        body: bodyMessage,
       },
     };
 
@@ -245,6 +176,16 @@ export class WashingcardayService {
     }).catch(function (error) {
       console.log('push send failed' + error);
     });
+  }
+
+  @Cron('00 07 * * *') //오전 7시 - 오늘 세차일 변경 확인
+  async checkTodayWashingDay() {
+    await this.checkWashingDay();
+  }
+
+  @Cron('03 07 * * *') //오전 7시 - 내일 알림 세차일 변경 체크 확인
+  async checkTommorowWashingDay() {
+    await this.checkWashingDay(1);
   }
 
   private objCreateDtoToEntity = async (userId:number, dto: CreateWashingcardayDto): Promise<Washingcarday> => {
@@ -290,11 +231,7 @@ export class WashingcardayService {
         if(!!day){
           const dayId = day.id;
 
-          await this.washingCarDayRepository
-          .createQueryBuilder('washingcarday')
-          .delete()
-          .where('id = :dayId', { dayId })
-          .execute();
+          await this.deleteWashingCarDay(dayId);
         }
   
 
@@ -308,18 +245,14 @@ export class WashingcardayService {
 
   async delete(
     userId: number,
-    warshingdayId: number,
+    washingdayId: number,
     token: string,
   ): Promise<BasicMessageDto> {
     if (extractUserId(token) !== userId) {
       throw new ForbiddenException('Not authorized to udpate this user info.');
     }
 
-    const result = await this.washingCarDayRepository
-    .createQueryBuilder('washingcarday')
-    .delete()
-    .where('id = :warshingdayId', { warshingdayId })
-    .execute();
+    const result = await this.deleteWashingCarDay(washingdayId);
 
     if (result.affected !== 0) {
       return new BasicMessageDto('deleted Successfully.');
@@ -327,120 +260,8 @@ export class WashingcardayService {
   }
 
   async test() : Promise<BasicMessageDto> {
-    const now = new Date();
-    now.setDate(now.getDate() + 1);
-    now.setHours(9,0,0,0);
 
-    const days = await this.washingCarDayRepository
-    .createQueryBuilder('washingcarday') // Alias for the WashingCarDay entity
-    .leftJoinAndSelect('washingcarday.user', 'user') // Assuming 'users' is the name of the relationship in WashingCarDay entity
-    .select()
-    .where('washingcarday.started_at = :now', { now }) // Using parameters to avoid SQL injection
-    .getMany();
-
-    var tokens = [];
-    var tokens2 = [];
-    for (const day of days) {
-      
-      //단기
-      var dataString = await this.client.get(day.nx+ '/' + day.ny);
-      var data = '[' + dataString + ']';
-      var weatherList = JSON.parse(data);
-
-      var start = day.started_at.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
-      var finish = day.finished_at.toISOString().split('T')[0].replaceAll('-', ''); // 'YYYY-MM-DD' 형식
-
-      var go = true;
-      for(const weather of weatherList){
-        if(weather.fcstDate >= start && weather.fcstDate <= finish){
-          if(day.custom_pop < (weather.pop * 1)){
-            const id = day.id;
-
-            await this.washingCarDayRepository
-            .createQueryBuilder()
-            .update('washingcarday')
-            .set({ check_update: true})
-            .where('id = :id', { id })
-            .execute();
-
-            const token = day.user.fcmToken;
-            tokens.push(token);
-            go = false;
-
-            break;
-          }
-        }
-      }
-
-      //중기
-      if(go){
-        dataString = await this.client.get(day.regId);
-        var middle = JSON.parse(dataString);
-
-        if(this.isRainPossibleDay(middle,day.custom_pop)){
-          const id = day.id;
-
-            await this.washingCarDayRepository
-            .createQueryBuilder()
-            .update('washingcarday')
-            .set({ check_update: true})
-            .where('id = :id', { id })
-            .execute();
-
-            const token = day.user.fcmToken;
-            if(token != null){
-              tokens.push(token);
-            }
-        }else{
-          const token = day.user.fcmToken;
-          if(token != null){
-            tokens2.push(token);
-          }
-        }
-      }
-    }
-
-    //당일에 세차일이 변한 경우
-    if(tokens.length != 0){
-      {
-        const message = {
-          tokens: tokens,
-          notification: {
-            title: '세차언제',
-            body: '등록하신 세차일의 지속일이 기상변화로 인해 변경되었어요😰 어플을 통해 변경된 지속일을 확인해봐요!✅',
-          },
-        };
-  
-        admin.messaging().sendMulticast(message).then((response) => {
-          console.log('push send success', response.successCount);
-        }).catch(function (error) {
-          console.log('push send failed' + error);
-        });
-      }
-    }
-
-    
-    //당일에 세차일이 변하지 않은 경우
-    if(tokens2.length != 0){
-      {
-        const message2 = {
-          tokens: tokens2,
-          notification: {
-            title: '세차언제',
-            body: '등록하신 세차일일이 되었어요😄 성공적인 세차가 되길 바랄께요!🙏',
-          },
-        };
-        
-        console.log(tokens2);
-  
-        admin.messaging().sendMulticast(message2).then((response) => {
-          console.log('push send success', response.successCount);
-        }).catch(function (error) {
-          console.log('push send failed' + error);
-        });
-      }
-    }
-   
+    await this.checkWashingDay(1);
 
     return new BasicMessageDto('fcm send Successfully.');
   }
