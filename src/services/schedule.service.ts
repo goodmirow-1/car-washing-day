@@ -75,26 +75,25 @@ export class ScheduleService {
     console.log('done pm short form weather get');
   }
 
-  @Cron(CronExpression.EVERY_SECOND)
-  // @Cron('20 06 * * *') //오전 8시 00분
+  // @Cron(CronExpression.EVERY_SECOND)
+  @Cron('20 06 * * *') //오전 8시 00분
   async middleAmWeatherHandleCron() {
-    if(this.check == false){
-      this.check = true;
-      const regIdList: string[] = [];
+    this.check = true;
+    const regIdList: string[] = [];
 
-      const filePath = path.join(process.cwd(), 'middle-grid.txt');
-      const fileContents = fs.readFileSync(filePath, 'utf8');
-    
-      const lines = fileContents.split('\n');
-    
-      lines.forEach(line => {
-        const parts = line.trim().split(/\s+/);
-        regIdList.push(parts[0]); 
-      });
+    const filePath = path.join(process.cwd(), 'middle-grid.txt');
+    const fileContents = fs.readFileSync(filePath, 'utf8');
   
-      let middleWeather: MiddleWeather = new MiddleWeather(regIdList, this.getDate() + '0600');
-      await middleWeather.setMiddleWeatherData(this.client);
-    }
+    const lines = fileContents.split('\n');
+  
+    lines.forEach(line => {
+      const parts = line.trim().split(/\s+/);
+      regIdList.push(parts[0]); 
+    });
+
+    let middleWeather: MiddleWeather = new MiddleWeather(regIdList, this.getDate() + '0600');
+    await middleWeather.setMiddleWeatherData(this.client);
+    console.log('done am middle form weather get');
   }
 
   @Cron('20 18 * * *') //오후 6시 10분
@@ -113,5 +112,6 @@ export class ScheduleService {
 
     let middleWeather: MiddleWeather = new MiddleWeather(regIdList, this.getDate() + '1800');
     await middleWeather.setMiddleWeatherData(this.client);
+    console.log('done pm middle form weather get');
   }
 }
