@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException, I
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import Redis from 'ioredis';
-import { Weather } from '../services/weather';
+import { WeatherRowData } from '../models/weather';
 
 @Controller('v1/weather')
 @ApiTags('날씨 예보 API')
@@ -47,12 +47,12 @@ export class WeatherController {
       var data = '[' + dataString + ']';
       var weatherList = JSON.parse(data);
       
-      var todayAmList: Weather[] = [];
-      var todayPmList: Weather[] = [];
-      var tomorrowAmList: Weather[] = [];
-      var tomorrowPmList: Weather[] = [];
-      var afterTomorrowAmList:Weather[] = [];
-      var afterTomorrowPmList:Weather[] = [];
+      var todayAmList: WeatherRowData[] = [];
+      var todayPmList: WeatherRowData[] = [];
+      var tomorrowAmList: WeatherRowData[] = [];
+      var tomorrowPmList: WeatherRowData[] = [];
+      var afterTomorrowAmList:WeatherRowData[] = [];
+      var afterTomorrowPmList:WeatherRowData[] = [];
 
       var todayAmRes;
       var todayPmRes;
@@ -65,7 +65,7 @@ export class WeatherController {
       var tommorowCheck = now >= 2300 ? true : false;
 
       for(var i = 0 ; i < weatherList.length; ++i){
-        var weather = weatherList[i] as Weather;
+        var weather = weatherList[i] as WeatherRowData;
 
         var fcstDate: number = Number(weather.fcstDate);
         var fcstTime: number = Number(weather.fcstTime);
