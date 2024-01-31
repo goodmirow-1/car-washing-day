@@ -14,10 +14,10 @@ import { WashingcardayService } from './washingcarday.service';
 import { CreateWashingcardayDto } from './dto/create-washingcarday.dto';
 import { UpdateWashingcardayDto } from './dto/update-washingcarday.dto';
 import { WashingcardayInfoResponseDto } from './dto/washingcarday-info.dto';
-import { BasicMessageDto } from '../common/basic-message.dto';
+import { BasicMessageDto } from '../utils/basic-message.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Washingcarday } from './entities/washingcarday.entity';
-import IUserRequest from '../interfaces/user-request';
+import IUserRequest from '../utils/auth/user-request';
 
 @Controller('v1/washingcarday')
 @ApiTags('세차일 API')

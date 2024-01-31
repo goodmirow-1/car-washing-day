@@ -1,44 +1,59 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions  } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { WeatherService } from './services/weather.service';
 import { ScheduleService } from './services/schedule.service';
 import { RedisService } from './services/redis.service';
-import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { RedisModule, RedisModuleOptions } from '@liaoliaots/nestjs-redis';
 import { WeatherController } from './controller/weather.controller';
 import { WashingcardayModule } from './washingcarday/washingcarday.module';
+import { configSchema } from './config/schema';
+import configuration from './config/configuration';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    RedisModule.forRoot({
-      readyLog: true,
-      config: {
-        url: process.env.REDIS_HOST,
-        port: 6379
-      },
-    }),
     ConfigModule.forRoot({
-      /** env 파일 등록 */
       envFilePath: '.env',
+      cache: true,
       isGlobal: true,
+      validationSchema: configSchema,
+      load: [configuration.loadYamlConfig],
     }),
 
-    TypeOrmModule.forRoot({
-    type: 'mariadb',
-    port: 3306,
-    host: process.env.DATASOURCE_URL,
-    username: process.env.DATASOURCE_USERNAME,
-    password: process.env.DATASOURCE_PASSWORD,
-    database: process.env.DATASOURCE_NAME,
-    entities: ['dist/**/*.entity{.ts,.js}'],
-    synchronize: true,
-    logging: true,
-    timezone: 'Asia/Seoul'
-  }),UserModule, WashingcardayModule ],
+    RedisModule.forRootAsync({
+      useFactory: async () => {
+        const dbConfig = await configuration.loadYamlConfig();
+
+        return {
+          readyLog: true,
+          config: {
+            url: dbConfig.redis.host,
+            port: dbConfig.redis.port
+          },
+        } as RedisModuleOptions;
+      }
+    }),
+
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        const dbConfig = await configuration.loadYamlConfig();
+        return {
+          type: dbConfig.database.type,
+          host: dbConfig.database.host,
+          port: dbConfig.database.port,
+          username: dbConfig.database.username,
+          password: dbConfig.database.password,
+          database: dbConfig.database.database,
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
+          synchronize: true,
+          logging: true,
+        } as TypeOrmModuleOptions;
+      }
+    }),
+  UserModule, WashingcardayModule],
   controllers: [WeatherController],
-  providers: [RedisService,WeatherService,ScheduleService],
+  providers: [RedisService,ScheduleService],
 })
 export class AppModule {}

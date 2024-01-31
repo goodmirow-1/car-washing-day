@@ -12,7 +12,7 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { UserLoginResponseDto } from './dto/user-login-response.dto';
 import { User } from './entities/user.entity';
-import { BasicMessageDto } from '../common/basic-message.dto';
+import { BasicMessageDto } from '../utils/basic-message.dto';
 import { Repository } from 'typeorm';
 
 import {

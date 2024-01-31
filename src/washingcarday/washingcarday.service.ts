@@ -13,7 +13,7 @@ import { CreateWashingcardayDto } from './dto/create-washingcarday.dto';
 import { UpdateWashingcardayDto } from './dto/update-washingcarday.dto';
 import { WashingcardayInfoResponseDto } from './dto/washingcarday-info.dto';
 import { Washingcarday } from './entities/washingcarday.entity';
-import { BasicMessageDto } from '../common/basic-message.dto';
+import { BasicMessageDto } from '../utils/basic-message.dto';
 import { Repository } from 'typeorm';
 import { User } from '../user/entities/user.entity';
 import { admin } from '../firebase/firebaseAdmin';
@@ -151,7 +151,7 @@ export class WashingcardayService {
     return await this.washingCarDayRepository
     .createQueryBuilder('washingcarday')
     .delete()
-    .where('id = :dayId', { id })
+    .where('id = :id', { id })
     .execute();
   }
 

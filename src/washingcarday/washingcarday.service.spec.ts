@@ -17,6 +17,7 @@ import {
   generateAccessToken,
 } from '../utils/auth/jwt-token-util';
 
+
 describe('WashingcardayService', () => {
   let service: WashingcardayService;
   let connection: Connection;
@@ -131,7 +132,7 @@ describe('WashingcardayService', () => {
     expect(savedWashingcarday.getNy).toBe(NY);
   });
 
-  it('saveBoard(): Should throw UnauthorizedException if token is wrong', async () => {
+  it('saveWashingCarDay(): Should throw UnauthorizedException if token is wrong', async () => {
     const savedUser = await saveUser();
     expect.assertions(1);
     const requestDto = getCreateWashingCarDayDto();
@@ -146,9 +147,10 @@ describe('WashingcardayService', () => {
     }
   });
 
-  it('removeBoard(): Should successfully remove', async () => {
+  it('removeWashingCarDay(): Should successfully remove', async () => {
     const savedUser = await saveWashingCarDay();
     const id = savedUser.washingcarday[0].getID;
+    console.log(id);
     await service.delete(
       savedUser.getUserId,
       id,

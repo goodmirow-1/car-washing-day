@@ -2,10 +2,10 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
-import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { RedisModule, RedisModuleOptions} from '@liaoliaots/nestjs-redis';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ValidationPipe } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { generateAccessToken } from '../src/utils/auth/jwt-token-util';
@@ -13,7 +13,7 @@ import { CreateWashingcardayDto } from '../src/washingcarday/dto/create-washingc
 import { WashingcardayInfoResponseDto } from '../src/washingcarday/dto/washingcarday-info.dto';
 import { Washingcarday } from '../src/washingcarday/entities/washingcarday.entity';
 import { User } from '../src/user/entities/user.entity';
-import { BasicMessageDto } from '../src/common/basic-message.dto';
+import { BasicMessageDto } from '../src/utils/basic-message.dto';
 import { CreateUserDto } from '../src/user/dto/create-user.dto';
 import { UpdateUserDto } from '../src/user/dto/update-user.dto';
 import { UserLoginRequestDto } from '../src/user/dto/user-login-request.dto';
@@ -22,6 +22,8 @@ import { UserResponseDto } from '../src/user/dto/user-response.dto';
 import { UserModule } from '../src/user/user.module';
 import { WashingcardayModule } from '../src/washingcarday/washingcarday.module';
 import { WeatherController } from '../src/controller/weather.controller';
+import { configSchema } from '../src/config/schema';
+import configuration from '../src/config/configuration';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -94,28 +96,46 @@ describe('AppController (e2e)', () => {
         UserModule,
         WashingcardayModule,
         ScheduleModule.forRoot(),
-        RedisModule.forRoot({
-          readyLog: true,
-          config: {
-            url: process.env.REDIS_HOST,
-            port: 6379
-          },
-        }),
         ConfigModule.forRoot({
-          /** env 파일 등록 */
-          envFilePath: '.env',
+          envFilePath: '.env.test.local',
+          cache: true,
           isGlobal: true,
+          validationSchema: configSchema,
+          load: [configuration.loadYamlConfig],
         }),
-        TypeOrmModule.forRoot({
-          type: 'mariadb',
-          port: 3306,
-          host: process.env.DATASOURCE_URL,
-          username: process.env.DATASOURCE_USERNAME,
-          password: process.env.DATASOURCE_PASSWORD,
-          database: 'carwarshingday_test',
-          entities: [User, Washingcarday],
-          logging: true,
-          synchronize: true,
+    
+        RedisModule.forRootAsync({
+          useFactory: async () => {
+            const dbConfig = await configuration.loadYamlConfig();
+    
+            return {
+              readyLog: true,
+              config: {
+                url: dbConfig.redis.host,
+                port: dbConfig.redis.port
+              },
+            } as RedisModuleOptions;
+          }
+        }),
+    
+        TypeOrmModule.forRootAsync({
+          useFactory: async () => {
+            const dbConfig = await configuration.loadYamlConfig();
+            console.log('dbConfig:', dbConfig);
+            console.log('dbConfig.DB_TYPE:', dbConfig.database.type);
+    
+            return {
+              type: dbConfig.database.type,
+              host: dbConfig.database.host,
+              port: dbConfig.database.port,
+              username: dbConfig.database.username,
+              password: dbConfig.database.password,
+              database: dbConfig.database.database,
+              entities: [User, Washingcarday],
+              synchronize: true,
+              logging: true,
+            } as TypeOrmModuleOptions;
+          }
         }),
       ],
       controllers: [WeatherController]
