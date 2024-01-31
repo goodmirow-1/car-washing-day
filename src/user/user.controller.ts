@@ -14,10 +14,10 @@ import { UserService } from './user.service';
 import { CreateUserDto, FcmTokenDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
-import { BasicMessageDto } from '../common/basic-message.dto';
+import { BasicMessageDto } from '../utils/basic-message.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';
 import { UserLoginResponseDto } from './dto/user-login-response.dto';
-import IUserRequest from '../interfaces/user-request';
+import IUserRequest from '../utils/auth/user-request';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 

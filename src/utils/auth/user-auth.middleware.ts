@@ -5,7 +5,7 @@ import {
     BadRequestException,
   } from '@nestjs/common';
   import { Response, NextFunction } from 'express';
-  import IUserRequest from '../interfaces/user-request';
+  import IUserRequest from './user-request';
   @Injectable()
   export class UserAuthMiddleware implements NestMiddleware {
     private checkSchemaAndReturnToken(header: string): string {

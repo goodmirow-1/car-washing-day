@@ -5,7 +5,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserAuthMiddleware } from '../middlewares/user-auth.middleware';
+import { UserAuthMiddleware } from '../utils/auth/user-auth.middleware';
 import { Washingcarday } from './entities/washingcarday.entity';
 import { WashingcardayService } from './washingcarday.service';
 import { WashingcardayController } from './washingcarday.controller';

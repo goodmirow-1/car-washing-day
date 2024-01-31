@@ -9,7 +9,7 @@ import { createMemoryDB } from '../utils/connections/create-memory-db';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
 import { Washingcarday } from '../washingcarday/entities/washingcarday.entity';
-import { BasicMessageDto } from '../common/basic-message.dto';
+import { BasicMessageDto } from '../utils/basic-message.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserLoginRequestDto } from './dto/user-login-request.dto';

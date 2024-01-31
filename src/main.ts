@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setupSwagger } from 'src/utils/swagger';
+import configuration from './config/configuration';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,6 +27,8 @@ async function bootstrap() {
 
   setupSwagger(app);
 
-  await app.listen(50012);
+  const dbConfig = await configuration.loadYamlConfig();
+
+  await app.listen(dbConfig.http.port);
 }
 bootstrap();
