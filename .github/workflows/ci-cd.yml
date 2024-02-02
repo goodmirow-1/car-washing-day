@@ -31,24 +31,10 @@ jobs:
     - name: if fail
       uses: actions/github-script@v6
       if: failure()
-      env:
-        SHOW_WORKSPACE_OUTPUT: ${{ steps.show-workspace.outputs.stdout }}
-        SHOW_VAR_FILE_OUTPUT: ${{ steps.show-var-file.outputs.stdout }}
-        SHOW_PLAN_OUTPUT: ${{ steps.show-plan.outputs.stdout }}
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         result-encoding: string
-        script: |
-          const output = `
-          <details><summary>Show Plan</summary>
-          \`\`\`\n
-          ${process.env.SHOW_WORKSPACE_OUTPUT}
-          ${process.env.SHOW_VAR_FILE_OUTPUT}
-          ${process.env.SHOW_PLAN_OUTPUT}
-          \`\`\`
-          </details>
-          `;
-          
+        script: |        
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
