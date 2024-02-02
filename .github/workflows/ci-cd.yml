@@ -15,26 +15,27 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: '14'
+
     - name: Install Dependencies
       run: npm install
+
+    - name: Setup MySQL
+      uses: mirromutth/mysql-action@v1.1
+      with:
+        mysql database: 'carwarshingday_test' 
+        mysql user: 'test'
+        mysql password: ${{ secrets.MYSQL_PASSWORD }}
+
     - name: Run Tests
       run: npm test
     - name: if fail
-      uses: actions/github-script@0.9.0 # Use the latest version
+      uses: actions/github-script@v5 # Use the latest version
       if: failure() # Correctly aligned with 'uses' and 'with'
       with:
-          github-token: ${{ github.token }} # Use the correct token syntax
-          script: |
-            const ref = "${{ github.ref }}"
-            const pull_number = Number(ref.split("/")[2])
-            await github.pulls.createReview({
-              ...context.repo,
-              pull_number, # Correct syntax
-              body: "Please check the test code again.",
-              event: "REQUEST_CHANGES"
-            })
-            await github.pulls.update({
-              ...context.repo,
-              pull_number, # Correct syntax
-              state: "closed"
-            })
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: process.env.MULTILINE_VALUE
+          })
