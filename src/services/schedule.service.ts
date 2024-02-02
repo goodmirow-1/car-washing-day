@@ -76,7 +76,7 @@ export class ScheduleService {
   }
 
   // @Cron(CronExpression.EVERY_SECOND)
-  @Cron('20 06 * * *') //오전 8시 00분
+  @Cron('20 06 * * *') //오전 6시 20분
   async middleAmWeatherHandleCron() {
     this.check = true;
     const regIdList: string[] = [];
@@ -96,7 +96,7 @@ export class ScheduleService {
     console.log('done am middle form weather get');
   }
 
-  @Cron('20 18 * * *') //오후 6시 10분
+  @Cron('20 18 * * *') //오후 6시 20분
   async middlePmWeatherHandleCron() {
     const regIdList: string[] = [];
 

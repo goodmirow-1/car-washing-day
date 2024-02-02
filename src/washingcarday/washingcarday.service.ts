@@ -183,7 +183,7 @@ export class WashingcardayService {
     await this.checkWashingDay();
   }
 
-  @Cron('03 07 * * *') //오전 7시 - 내일 알림 세차일 변경 체크 확인
+  @Cron('03 07 * * *') //오전 7시 3분 - 내일 알림 세차일 변경 체크 확인
   async checkTommorowWashingDay() {
     await this.checkWashingDay(1);
   }
