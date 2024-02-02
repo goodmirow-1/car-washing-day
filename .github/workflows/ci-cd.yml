@@ -1,10 +1,10 @@
-// PR_Test.yml
-// 완성된 코드
-name: PR Test
-on: 
-	pull_request:   #pr이벤트를 감지
-    	branches:
-        	- master  #test라는 브랜치에 한해서
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs: 
 	Run Jest:
